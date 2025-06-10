@@ -1,0 +1,86 @@
+<div class="sidebar">
+    <div class="sidebar-background"></div>
+    <div class="sidebar-wrapper scrollbar-inner">
+        <div class="sidebar-content">
+
+            <!-- Logo -->
+
+            <!-- Logo -->
+            <div class="icon d-block text-center mb-3">
+                <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo Titik Jalan"
+                    style="width: 200px; padding: 20px;">
+            </div>
+
+            <!-- User Info -->
+            <div class="user">
+                <div class="avatar-sm float-left mr-2" style="box-shadow: 0 0 8px rgba(255,255,255,0.6);">
+                    <img src="{{ url_for('static', filename='assets/img/profile2.jpg') }}" alt="User Icon"
+                        class="avatar-img rounded-circle" style="border: 2px solid white;">
+                </div>
+                <div class="info">
+                    <a data-toggle="collapse" href="#collapseExample" aria-expanded="true">
+                        <span>
+                            {{ session['username'] }}
+                            <span class="user-level text-capitalize">Admin</span>
+                        </span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Menu -->
+            <ul class="nav mt-3">
+
+                <li class="nav-item">
+                    <a href="/dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <p>Dashboard</p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="/live-monitoring">
+                        <i class="fas fa-video"></i>
+                        <p>Live Monitoring</p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="/log-deteksi">
+                        <i class="fas fa-list"></i>
+                        <p>Log Deteksi</p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="/manajeman-kamera">
+                        <i class="fas fa-camera"></i>
+                        <p>Manajemen Kamera</p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="/manajemen-user">
+                        <i class="fas fa-users-cog"></i>
+                        <p>Manajemen Pengguna</p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="/log-aktivitas">
+                        <i class="fas fa-history"></i> 
+                        <p>Log Aktivitas</p>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="/logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <p>Logout</p>
+                    </a>
+                </li>
+
+            </ul>
+
+        </div>
+    </div>
+</div>

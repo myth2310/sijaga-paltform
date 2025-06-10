@@ -1,0 +1,57 @@
+{% extends 'dashboard/layouts/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="text-center mb-3">
+        <h3 class="fw-bold">Live Feed: {{ cam.room }}</h3>
+    </div>
+
+    <div class="card shadow border-0">
+        <div class="card-body text-center p-0">
+            <div id="video-container-{{ cam.id }}">
+                <img src="{{ url_for('video_feed', cam_id=cam.id) }}"
+                     id="camera-{{ cam.id }}"
+                     class="img-fluid"
+                     style="width: 100%; max-height: 75vh; object-fit: cover;"
+                     alt="Live feed"
+                     onerror="handleError({{ cam.id }})"
+                     onload="handleLoad({{ cam.id }})">
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-3">
+        <a href="{{ url_for('live_monitoring') }}" class="btn btn-secondary">
+            ← Kembali ke Daftar Kamera
+        </a>
+    </div>
+</div>
+
+<script>
+const errorStatus = {};
+
+function handleError(camId) {
+    const container = document.getElementById(`video-container-${camId}`);
+    container.innerHTML = `
+        <div class="d-flex align-items-center justify-content-center bg-light" style="height: 60vh;">
+            <div class="text-center text-danger">
+                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                <p class="mb-0">Kamera tidak tersedia</p>
+            </div>
+        </div>`;
+    errorStatus[camId] = true;
+}
+
+function handleLoad(camId) {
+    errorStatus[camId] = false;
+}
+
+setInterval(() => {
+    const camId = {{ cam.id }};
+    const img = document.getElementById(`camera-${camId}`);
+    if (!errorStatus[camId] && img) {
+        img.src = "{{ url_for('video_feed', cam_id=cam.id) }}" + "?t=" + new Date().getTime();
+    }
+}, 5000);
+</script>
+{% endblock %}

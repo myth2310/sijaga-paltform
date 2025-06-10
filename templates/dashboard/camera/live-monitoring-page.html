@@ -1,0 +1,61 @@
+{% extends 'dashboard/layouts/base.html' %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h4 class="page-title">Live Monitoring</h4>
+</div>
+
+<div class="row">
+    {% for cam in cameras %}
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header d-flex justify-content-between align-items-center text-white" style="background-color: #5a55ca;">
+                <h6 class="mb-0">{{ cam.room }}</h6>
+                <a href="/camera" class="btn btn-sm btn-light text-primary fw-semibold">Lihat</a>
+            </div>
+            <div class="card-body p-2 text-center">
+                <div id="video-container-{{ cam.id }}">
+                    <img src="{{ url_for('video_feed', cam_id=cam.id) }}" 
+                         id="camera-{{ cam.id }}"
+                         class="img-fluid rounded"
+                         style="width: 100%; height: 250px; object-fit: cover;"
+                         alt="Live feed"
+                         onerror="handleError({{ cam.id }})"
+                         onload="handleLoad({{ cam.id }})">
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+const errorStatus = {};
+
+function handleError(camId) {
+    const container = document.getElementById(`video-container-${camId}`);
+    container.innerHTML = `
+        <div class="d-flex align-items-center justify-content-center bg-light" style="height: 250px;">
+            <div class="text-center text-danger">
+                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                <p class="mb-0">Kamera tidak tersedia</p>
+            </div>
+        </div>`;
+    errorStatus[camId] = true;
+}
+
+function handleLoad(camId) {
+    errorStatus[camId] = false;
+}
+
+setInterval(() => {
+    {% for cam in cameras %}
+    const camId = {{ cam.id }};
+    const img = document.getElementById(`camera-${camId}`);
+    if (!errorStatus[camId] && img) {
+        img.src = "{{ url_for('video_feed', cam_id=cam.id) }}" + "?t=" + new Date().getTime();
+    }
+    {% endfor %}
+}, 5000);
+</script>
+{% endblock %}

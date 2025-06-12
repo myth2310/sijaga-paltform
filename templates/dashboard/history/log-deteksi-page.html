@@ -28,19 +28,14 @@
                                 <td>{{ loop.index }}</td>
                                 <td>{{ log.waktu }}</td>
                                 <td>{{ log.lokasi }}</td>
-                                <td>{{ log.deteksi }}</td>
+                                <td><span class="badge text-bg-danger">{{ log.deteksi }}</span></td>
                                 <td>
-                                
-                                    <button 
-                                        type="button" 
-                                        class="btn btn-sm btn-primary" 
-                                        data-toggle="modal" 
-                                        data-target="#photoModal" 
-                                        data-photo="{{ log.foto_url }}"
-                                    >
+
+                                    <button type="button" class="btn btn-sm btn-primary" data-toggle="modal"
+                                        data-target="#photoModal" data-photo="{{ log.foto_url }}">
                                         Lihat Foto
                                     </button>
-                            
+
                                 </td>
                             </tr>
                             {% else %}
@@ -57,20 +52,22 @@
 </div>
 
 <!-- Modal Foto -->
-<div class="modal fade" id="photoModal" tabindex="-1" role="dialog" aria-labelledby="photoModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 600px;">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="photoModalLabel">Foto Gerakan Mencurigakan</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body text-center">
-        <img src="https://www.distributor-cctv.com/blog/wp-content/uploads/2024/11/cara-kerja-deteksi-gerakan-cctv-dan-manfaat-keamanannya.png" id="modalPhoto" class="img-fluid rounded" alt="Foto Gerakan">
-      </div>
+<div class="modal fade" id="photoModal" tabindex="-1" role="dialog" aria-labelledby="photoModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 600px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="photoModalLabel">Foto Gerakan Mencurigakan</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="https://www.distributor-cctv.com/blog/wp-content/uploads/2024/11/cara-kerja-deteksi-gerakan-cctv-dan-manfaat-keamanannya.png"
+                    id="modalPhoto" class="img-fluid rounded" alt="Foto Gerakan">
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
 <script>
@@ -79,7 +76,7 @@
         var photoUrl = button.data('photo') || '';
 
         var modal = $(this);
-        if(photoUrl === ''){
+        if (photoUrl === '') {
             modal.find('#modalPhoto').attr('src', '');
             modal.find('#modalPhoto').attr('alt', 'Foto tidak tersedia');
         } else {

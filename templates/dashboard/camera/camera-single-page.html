@@ -1,57 +1,141 @@
-{% extends 'dashboard/layouts/base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Live Monitoring - {{ camera.room }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #000;
+      margin: 0;
+      overflow: hidden;
+    }
+    .camera-info {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: #fff;
+      z-index: 10;
+      background-color: rgba(0,0,0,0.5);
+      padding: 10px 15px;
+      border-radius: 8px;
+    }
+    .back-button {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 10;
+    }
+    .camera-view {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+    }
+    .error-container {
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
 
-{% block content %}
-<div class="container mt-4">
-    <div class="text-center mb-3">
-        <h3 class="fw-bold">Live Feed: {{ cam.room }}</h3>
-    </div>
+  <div class="camera-info">
+    <h5 class="mb-1">Live Strean : {{ camera.room }}</h5>
+    <small>ID Kamera: {{ camera.id }}</small>
+  </div>
 
-    <div class="card shadow border-0">
-        <div class="card-body text-center p-0">
-            <div id="video-container-{{ cam.id }}">
-                <img src="{{ url_for('video_feed', cam_id=cam.id) }}"
-                     id="camera-{{ cam.id }}"
-                     class="img-fluid"
-                     style="width: 100%; max-height: 75vh; object-fit: cover;"
-                     alt="Live feed"
-                     onerror="handleError({{ cam.id }})"
-                     onload="handleLoad({{ cam.id }})">
-            </div>
-        </div>
-    </div>
+  <div class="back-button">
+    <a href="{{ url_for('live_feed') }}" class="btn btn-outline-light">
+      <i class="fas fa-arrow-left"></i> Kembali
+    </a>
+  </div>
 
-    <div class="text-center mt-3">
-        <a href="{{ url_for('live_monitoring') }}" class="btn btn-secondary">
-            ← Kembali ke Daftar Kamera
-        </a>
-    </div>
-</div>
+  <div id="video-container-{{ camera.id }}">
+    <img src="{{ url_for('video_feed', cam_id=camera.id) }}"
+         id="camera-{{ camera.id }}"
+         class="camera-view"
+         alt="Live feed"
+         onerror="handleError({{ camera.id }})"
+         onload="handleLoad({{ camera.id }})">
+  </div>
 
-<script>
-const errorStatus = {};
+  <audio id="alarm-audio" src="{{ url_for('static', filename='audio/alarm.mp3') }}" preload="auto"></audio>
 
-function handleError(camId) {
-    const container = document.getElementById(`video-container-${camId}`);
-    container.innerHTML = `
-        <div class="d-flex align-items-center justify-content-center bg-light" style="height: 60vh;">
+  <script>
+    const errorStatus = {};
+
+    function handleError(camId) {
+      const container = document.getElementById(`video-container-${camId}`);
+      container.innerHTML = `
+        <div class="d-flex align-items-center justify-content-center bg-dark error-container">
             <div class="text-center text-danger">
-                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
-                <p class="mb-0">Kamera tidak tersedia</p>
+                <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                <h4>Kamera tidak tersedia</h4>
+                <p>Periksa koneksi atau alamat IP kamera.</p>
             </div>
         </div>`;
-    errorStatus[camId] = true;
-}
-
-function handleLoad(camId) {
-    errorStatus[camId] = false;
-}
-
-setInterval(() => {
-    const camId = {{ cam.id }};
-    const img = document.getElementById(`camera-${camId}`);
-    if (!errorStatus[camId] && img) {
-        img.src = "{{ url_for('video_feed', cam_id=cam.id) }}" + "?t=" + new Date().getTime();
+      errorStatus[camId] = true;
     }
-}, 5000);
+
+    function handleLoad(camId) {
+      errorStatus[camId] = false;
+    }
+
+    setInterval(() => {
+      const camId = {{ camera.id }};
+      const img = document.getElementById(`camera-${camId}`);
+      if (!errorStatus[camId] && img) {
+        img.src = "{{ url_for('video_feed', cam_id=camera.id) }}" + "?t=" + new Date().getTime();
+      }
+    }, 5000);
+  </script>
+
+
+<script>
+    let detectionActive = true;
+    let alarmPlaying = false;
+
+    function simulateDetection() {
+        const detected = Math.random() < 0.2; // Dummy: 20% kemungkinan deteksi
+        const threatType = "senjata api";
+
+        if (detected && detectionActive && !alarmPlaying) {
+            triggerAlarm(`Peringatan! Terdeteksi ancaman berupa ${threatType}.`);
+        }
+    }
+
+    function triggerAlarm(message) {
+        const audio = document.getElementById('alarm-audio');
+
+        audio.play().then(() => {
+            alarmPlaying = true;
+
+            const alertBox = document.createElement('div');
+            alertBox.innerHTML = `
+                <div class="position-absolute top-50 start-50 translate-middle bg-danger text-white p-4 rounded shadow text-center" style="z-index: 10000;">
+                    <h4 class="mb-2"><i class="fas fa-bell me-2"></i>${message}</h4>
+                    <small>Sistem sedang dalam mode respons ancaman.</small>
+                </div>`;
+            document.body.appendChild(alertBox);
+
+            // Hapus notifikasi dan reset status alarm setelah audio selesai (atau max 10 detik)
+            const resetDelay = 10000;
+            setTimeout(() => {
+                document.body.removeChild(alertBox);
+                alarmPlaying = false;
+            }, resetDelay);
+        }).catch(err => {
+            console.log("Autoplay error, user interaction needed:", err);
+        });
+    }
+
+    // Jalankan simulasi setiap 3 detik
+    setInterval(simulateDetection, 3000);
 </script>
-{% endblock %}
+
+    
+
+</body>
+</html>

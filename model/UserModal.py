@@ -38,3 +38,30 @@ class UserModel:
         except Exception as e:
             print(f"Insert error: {e}")
             return False
+
+
+    def update_user(self, id, name, email, role):
+        try:
+            cur = self.mysql.connection.cursor()
+            query = "UPDATE users SET username = %s, email = %s, role = %s WHERE id = %s"
+            cur.execute(query, (name, email, role, id))
+            self.mysql.connection.commit()
+            return True
+        except Exception as e:
+            print(f"Error saat update user: {e}")
+            return False
+        finally:
+            cur.close()
+
+    def delete_user(self, id):
+        try:
+            cur = self.mysql.connection.cursor()
+            query = "DELETE FROM users WHERE id = %s"
+            cur.execute(query, (id,))
+            self.mysql.connection.commit()
+            return True
+        except Exception as e:
+            print(f"Error saat delete user: {e}")
+            return False
+        finally:
+            cur.close()

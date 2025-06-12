@@ -28,6 +28,20 @@ class CameraModel:
         self.mysql.connection.commit()
         cur.close()
 
+    def update_camera(self, id, room, source):
+        cur = self.mysql.connection.cursor()
+        query = "UPDATE camera SET room = %s, source = %s WHERE id = %s"
+        cur.execute(query, (room, source, id))
+        self.mysql.connection.commit()
+        cur.close()
+
+    def delete_camera(self, id):
+        cur = self.mysql.connection.cursor()
+        query = "DELETE FROM camera WHERE id = %s"
+        cur.execute(query, (id,))
+        self.mysql.connection.commit()
+        cur.close()  
+
     def get_camera_by_id(self, cam_id):
         cur = self.mysql.connection.cursor()
         cur.execute("SELECT id, room, source FROM camera WHERE id = %s", (cam_id,))

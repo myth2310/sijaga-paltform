@@ -31,8 +31,15 @@
                 <td>{{ user[3] }}</td>
                 <td><span class="badge text-bg-success">{{ user[4] }}</span></td>
                 <td>
-                  <button class="btn btn-warning">Edit</button>
-                  <button class="btn btn-danger">Hapus</button>
+                <td>
+                  <button class="btn btn-warning btn-edit-user" data-id="{{ user[0] }}" data-name="{{ user[1] }}"
+                    data-email="{{ user[3] }}" data-role="{{ user[4] }}" data-toggle="modal"
+                    data-target="#editUserModal">Edit</button>
+
+                  <button class="btn btn-danger btn-delete-user" data-id="{{ user[0] }}" 
+                    data-toggle="modal" data-target="#deleteUserModal">Hapus</button>
+                </td>
+
                 </td>
               </tr>
               {% else %}
@@ -94,5 +101,116 @@
     </form>
   </div>
 </div>
+
+<!-- Modal Edit User -->
+<div class="modal fade" id="editUserModal" tabindex="-1" role="dialog" aria-labelledby="editUserModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <form action="/admin/user/update" method="POST">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit User</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="id" id="editUserId">
+
+          <div class="form-group">
+            <label>Nama</label>
+            <input type="text" class="form-control" name="name" id="editUserName" required />
+          </div>
+
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" class="form-control" name="email" id="editUserEmail" required />
+          </div>
+
+          <div class="form-group">
+            <label>Role</label>
+            <select class="form-control" name="role" id="editUserRole" required>
+              <option value="admin">Admin</option>
+              <option value="staff">Staff</option>
+            </select>
+          </div>
+
+          <!-- <div class="form-group">
+            <label>Password (Opsional)</label>
+            <input type="password" class="form-control" name="password" placeholder="Kosongkan jika tidak diubah" />
+            <small class="text-muted">Kosongkan password jika tidak ingin mengubah</small>
+          </div> -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-success">Simpan Perubahan</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const editButtons = document.querySelectorAll('.btn-edit-user');
+    editButtons.forEach(button => {
+      button.addEventListener('click', function () {
+        document.getElementById('editUserId').value = this.dataset.id;
+        document.getElementById('editUserName').value = this.dataset.name;
+        document.getElementById('editUserEmail').value = this.dataset.email;
+        document.getElementById('editUserRole').value = this.dataset.role;
+      });
+    });
+
+    const deleteButtons = document.querySelectorAll('.btn-delete-user');
+    deleteButtons.forEach(button => {
+      button.addEventListener('click', function () {
+        document.getElementById('deleteUserId').value = this.dataset.id;
+        document.getElementById('deleteUserName').textContent = this.dataset.name;
+      });
+    });
+  });
+</script>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const deleteButtons = document.querySelectorAll('.btn-delete-user');
+
+    deleteButtons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const cameraId = this.getAttribute('data-id');
+
+        Swal.fire({
+          title: 'Yakin ingin menghapus?',
+          text: 'Data kamera akan dihapus secara permanen!',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'Ya, hapus!',
+          cancelButtonText: 'Batal'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            fetch(`/admin/user/delete/${cameraId}`, {
+              method: 'POST'
+            })
+              .then(response => {
+                if (response.ok) {
+                  Swal.fire('Berhasil!', 'Data User telah dihapus.', 'success')
+                    .then(() => {
+                      location.reload(); 
+                    });
+                } else {
+                  Swal.fire('Gagal', 'Terjadi kesalahan saat menghapus.', 'error');
+                }
+              });
+          }
+        });
+      });
+    });
+  });
+</script>
 
 {% endblock %}

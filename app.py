@@ -7,6 +7,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import cv2
 import datetime
 
+import time
+from ultralytics import YOLO
+
 app = Flask(__name__)
 app.secret_key = 'sijaga'
 
@@ -76,7 +79,22 @@ def storeCamera():
     room = request.form['room']
     source = request.form['source']
     camera_model.save_camera(room, source)
-    flash('Kamera berhasil ditambahkan.')
+    flash('Kamera berhasil ditambahkan.', 'success')
+    return redirect(url_for('manajeman_kamera'))
+
+@app.route('/admin/camera/delete/<int:id>', methods=['POST'])
+def deletCamera(id):
+    camera_model.delete_camera(id)
+    flash('Kamera berhasil dihapus.', 'success')
+    return redirect(url_for('manajeman_kamera'))
+
+@app.route('/admin/camera/update', methods=['POST'])
+def update_camera():
+    id = request.form['id']
+    room = request.form['room']
+    source = request.form['source']
+    camera_model.update_camera(id, room, source)
+    flash('Data kamera berhasil diperbarui.', 'success')
     return redirect(url_for('manajeman_kamera'))
 
 @app.route('/manajemen-user')
@@ -105,8 +123,28 @@ def createUser():
         flash('User berhasil ditambahkan!', 'success')
     else:
         flash('Gagal menambahkan user!', 'error')
-   
     return redirect(url_for('manajemen_user'))
+
+@app.route('/admin/user/delete/<int:id>', methods=['POST'])
+def deleteUser(id):
+    user_model.delete_user(id)
+    flash('User berhasil dihapus.', 'success')
+    return redirect(url_for('manajemen_user'))
+
+@app.route('/admin/user/update', methods=['POST'])
+def editUser():
+    id = request.form['id']
+    name = request.form['name']
+    email = request.form['email']
+    role = request.form['role']
+
+    if user_model.update_user(id, name, email, role):
+        flash('User berhasil diupdate!', 'success')
+    else:
+        flash('Gagal mengubah user!', 'error')
+    return redirect(url_for('manajemen_user'))
+
+
 
 @app.route('/log-deteksi')
 def log_deteksi():
@@ -126,19 +164,33 @@ def live_feed():
     cameras = camera_model.get_all()
     return render_template('dashboard/camera/live-monitoring-page.html', cameras=cameras)
 
-@app.route('/camera')
-def single_camera_view():
-    return render_template('dashboard/camera/camera-single-page.html')
+@app.route('/camera/<int:id>')
+def single_camera_view(id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    camera = camera_model.get_camera_by_id(id)
+    if not camera:
+        return "Camera not found", 404
+    threat_detected = True 
+    threat_type = "Senjata Api" if threat_detected else None
+
+    return render_template(
+        'dashboard/camera/camera-single-page.html',
+        camera=camera,
+        threat_detected=threat_detected,
+        threat_type=threat_type
+    )
 
 
 camera_streams = {}
-
-import time
+model = YOLO("models/my_model.pt")  
 def gen_frames(cam_id, source):
     if str(source).strip() == "0":
         source_path = 0
     else:
         source_path = f"http://{source}:8080/video"
+        # source_path = f"vidio.mp4"
 
     if cam_id not in camera_streams:
         camera_streams[cam_id] = cv2.VideoCapture(source_path)
@@ -151,20 +203,27 @@ def gen_frames(cam_id, source):
             cap.release()
             camera_streams.pop(cam_id, None)
             time.sleep(2)
-
             cap = cv2.VideoCapture(source_path)
             camera_streams[cam_id] = cap
-
             success, frame = cap.read()
             if not success:
                 time.sleep(2)
                 continue
+        results = model.predict(frame, imgsz=640, conf=0.4, verbose=False)
+        for r in results:
+            for box in r.boxes:
+                x1, y1, x2, y2 = map(int, box.xyxy[0])
+                cls = int(box.cls[0])
+                label = model.names[cls]
+                conf = box.conf[0]
 
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
+                cv2.putText(frame, f'{label} {conf:.2f}', (x1, y1 - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
         ret, buffer = cv2.imencode('.jpg', frame)
         frame = buffer.tobytes()
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-
 
 
 @app.route('/video_feed/<int:cam_id>')
